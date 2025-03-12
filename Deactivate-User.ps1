@@ -56,8 +56,12 @@ function Save-GroupMembership {
     $csvPath = "C:\temp\$username`_GroupMembership.csv"
 
     # Export the group information to a CSV file
-    $groupInfo | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
-
+    try {
+        $groupInfo | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
+    }
+    catch {
+        Write-Error "Failed to export group membership to CSV file: $_"
+    }
     Write-Host "`nGroup membership for $username has been exported to $csvPath" -ForegroundColor Green
 }
 
@@ -135,8 +139,10 @@ function Main {
                 
                 # Main functionality to disable the user account
                 $groupInfo = Get-GroupMembership -username $username
-                Save-GroupMembership -groupInfo $groupInfo -username $username
-                Remove-GroupMemberships -username $username
+                if ($null -ne $groupInfo) {
+                    Save-GroupMembership -groupInfo $groupInfo -username $username
+                    Remove-GroupMemberships -username $username
+                }
                 Clear-UserAttributes -username $username
                 Disable-UserAccount -username $username
                 Move-UserAccount -username $username
