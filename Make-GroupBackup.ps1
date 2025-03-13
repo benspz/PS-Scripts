@@ -5,9 +5,8 @@ function Get-UserArray {
 
     # Define the OUs to search
     $OUs = @(
-    "OU=Users,OU=1343,OU=1200-1399,OU=Expert-Store,OU=NO,OU=Expert-Mgmt,DC=expert,DC=local", # 1343
-    "OU=Users,OU=1344,OU=1200-1399,OU=Expert-Store,OU=NO,OU=Expert-Mgmt,DC=expert,DC=local", # 1344
-    "OU=Users,OU=1345,OU=1200-1399,OU=Expert-Store,OU=NO,OU=Expert-Mgmt,DC=expert,DC=local" # 1345"
+    # Add the OUs you want to search here
+    "OU=Users,DC=example,DC=com"
 )
 
     # Loop over each OU
