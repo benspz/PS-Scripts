@@ -76,7 +76,7 @@ function Remove-GroupMemberships {
     Write-Host "`nUser account '$username' has been removed from all groups." -ForegroundColor Green
 }
 
-function Clear-UserAttributes {
+function Clear-UserAttributes {  # Add attribute backup functionality
     param ($username)
 
     # Create list of attributes to clear
@@ -141,7 +141,7 @@ function Main {
                 $groupInfo = Get-GroupMembership -username $username
                 if ($null -ne $groupInfo) {
                     Save-GroupMembership -groupInfo $groupInfo -username $username
-                    Remove-GroupMemberships -username $username
+                    Remove-GroupMemberships -groupInfo $groupInfo -username $username
                 }
                 Clear-UserAttributes -username $username
                 Disable-UserAccount -username $username
