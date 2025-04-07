@@ -22,11 +22,10 @@ foreach ($OU in $OUs) {
             
             # Write the output to a CSV file
             $csvOutput = [PSCustomObject]@{
-                UserName = $user.Name
                 SamAccountName = $user.SamAccountName
                 ExtensionAttribute = $attr
             }
-            $csvOutput | Export-Csv -Append -Path C:\temp\ext_att14.csv -NoTypeInformation
+            $csvOutput | Export-Csv -Append -Path C:\temp\ext_att14.csv -NoTypeInformation -Encoding "utf8"
         }
     }
 }

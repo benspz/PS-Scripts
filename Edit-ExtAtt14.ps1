@@ -18,7 +18,6 @@ foreach($user in $users) {
 
     # Write the output to a CSV file
     $csvOutput = [PSCustomObject]@{
-        UserName = $user.UserName
         SamAccountName = $user.SamAccountName
         ExtensionAttribute = $strippedExtAtt14
     }
