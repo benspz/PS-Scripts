@@ -80,7 +80,7 @@ function Clear-UserAttributes {  # Add attribute backup functionality
     param ($username)
 
     # Create list of attributes to clear
-    $attributes = @("title", "manager", "physicalDeliveryOfficeName", "department", "mobile", "telephoneNumber", "extensionAttribute2", "extensionAttribute3",
+    $attributes = @("title", "manager", "physicalDeliveryOfficeName", "department", "mobile", "telephoneNumber", "description", "extensionAttribute2", "extensionAttribute3",
                     "extensionAttribute4", "extensionAttribute5", "extensionAttribute6", "extensionAttribute7", "extensionAttribute8",
                     "extensionAttribute9", "extensionAttribute12", "extensionAttribute13", "extensionAttribute14", "extensionAttribute15")
     
