@@ -1,5 +1,5 @@
 # Import csv file
-$csvPath = "C:\temp\stripped_ext_att14.csv"
+$csvPath = ...
 $users = Import-Csv -Path $csvPath
 
 # Initialise variables
@@ -9,9 +9,10 @@ $failedusers = @()
 
 # Main loop
 foreach ($user in $users) {
+    
     try {  # Change attribute and record successes
         Set-ADUser -Identity $user.SamAccountName -Replace @{
-            ExtensionAttribute14 = $user.ExtensionAttribute
+            ExtensionAttribute9 = $user.extensionAttribute9
         }
         $successcount++
     }

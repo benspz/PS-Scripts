@@ -52,8 +52,11 @@ function Get-GroupMembership {
 function Save-GroupMembership {
     param ($groupInfo, $username)
 
+    # Create timespamp variable
+    $timestamp = (Get-Date).ToString("yyyyMMdd")
+    
     # Create the output file path
-    $csvPath = "C:\temp\$username`_GroupMembership.csv"
+    $csvPath = "C:\temp\$timestamp`_$username`_GroupMembership.csv"
 
     # Export the group information to a CSV file
     try {
