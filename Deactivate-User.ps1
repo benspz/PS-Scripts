@@ -66,7 +66,7 @@ function Save-GroupMembership {
 
     # Export the group information to a CSV file
     try {
-        $groupInfo | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
+        $groupInfo | Out-File -FilePath $csvPath -Encoding UTF8
     }
     catch {
         Write-Error "Failed to export group membership to CSV file: $_"
