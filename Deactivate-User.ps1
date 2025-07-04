@@ -29,7 +29,7 @@ function Get-GroupMembership {
     
     # Get all groups the user is a member of
     $groups = $user.MemberOf | ForEach-Object {
-        Get-ADGroup -Identity $_ -Properties Name, Description
+        Get-ADGroup -Identity $_ -Properties Name
     }
     
     # Create an array to hold the group information
@@ -39,7 +39,6 @@ function Get-GroupMembership {
     foreach ($group in $groups) {
         $groupInfo += [PSCustomObject]@{
             GroupName = $group.Name
-            Description = if ($group.Description) { $group.Description } else { "N/A" }
         }
     }
     
