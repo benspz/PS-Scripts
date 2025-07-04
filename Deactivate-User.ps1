@@ -55,8 +55,15 @@ function Save-GroupMembership {
     # Create timespamp variable
     $timestamp = (Get-Date).ToString("yyyyMMdd")
     
-    # Create the output file path
-    $csvPath = "C:\temp\$username`_GroupMembership_$timestamp`.csv"
+    # Check if you can access potet02
+    if (Test-Path -Path "\\nooslpotet02\It\User Groups BACKUP\") {
+        # If true save csv to potet02
+        $csvPath = "\\nooslpotet02\It\User Groups BACKUP\$username`_GroupMembership_$timestamp`.csv"
+    }
+    else { # Else save to local temp folder.
+        $csvPath = "C:\temp\$username`_GroupMembership_$timestamp`.csv"
+    }
+    
 
     # Export the group information to a CSV file
     try {
