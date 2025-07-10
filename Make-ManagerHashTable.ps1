@@ -1,3 +1,5 @@
+# Requires ImportExcel Module
+
 # Define file paths
 $excelFiles = @(
     "C:\Users\305079\Desktop\ServiceConsept_Roller_NO - Copy.xlsx"

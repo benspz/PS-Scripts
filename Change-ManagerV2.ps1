@@ -1,3 +1,5 @@
+# Requires ImportExcel Module
+
 function Update-Manager {
     param ($users, $owner, $dailyManager, $storeManager, $managersManager)
     # Assign managers according to hierarchy
