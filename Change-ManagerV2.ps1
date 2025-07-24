@@ -1,4 +1,6 @@
 # Requires ImportExcel Module
+# Run the command below if you don't have the module installed
+# Install-Module ImportExcel
 
 # Initialize list for Log objects
 $global:ManagerUpdateLog = @()
