@@ -143,7 +143,7 @@ function Main {
     }
 
     # Set the OU for searchbase
-    $OU = "OU=Expert-Store,OU=NO,OU=Expert-Mgmt,DC=expert,DC=local"
+    $OU = "OU=Expert-Mgmt,DC=expert,DC=local"
 
     # Creates hashtable with storenumbers as keys and manager's manager as value
     $hashTable = Get-HashTable
