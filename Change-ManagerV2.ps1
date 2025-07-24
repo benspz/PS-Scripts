@@ -1,52 +1,81 @@
 # Requires ImportExcel Module
 
+# Initialize list for Log objects
+$global:ManagerUpdateLog = @()
+
 function Update-Manager {
     param ($users, $owner, $dailyManager, $storeManager, $managersManager)
+
+    # Initialize counter
+    $counter = 0
+
     # Assign managers according to hierarchy
     foreach ($user in $users) {
         $role = $user.extensionAttribute12
+        $originalManagerDN = $user.Manager
+        $originalManager = if ($originalManagerDN) { Get-ADUser -Identity $originalManagerDN } else { $null }
+        $newManager = $null
 
         switch -Wildcard ($role) {
             "Owner" {
-                Set-ADUser -Identity $user.SamAccountName -Manager $managersManager.DistinguishedName
+                $newManager = $managersManager
             }
 
             "DailyManager" {
                 if ($owner.Count -gt 0) {
-                    Set-ADUser -Identity $user.SamAccountName -Manager $owner[0].DistinguishedName
+                    $newManager = $owner[0]
                 }
                 else {
-                    Set-ADUser -Identity $user.SamAccountName -Manager $managersManager.DistinguishedName
+                    $newManager = $managersManager
                 }
             }
 
             "StoreManager*" {
                 if ($dailyManager.Count -gt 0) {
-                    Set-ADUser -Identity $user.SamAccountName -Manager $dailyManager[0].DistinguishedName
+                    $newManager = $dailyManager[0]
                 }
                 elseif ($owner.Count -gt 0) {
-                    Set-ADUser -Identity $user.SamAccountName -Manager $owner[0].DistinguishedName
+                    $newManager = $owner[0]
                 }
                 else {
-                    Set-ADUser -Identity $user.SamAccountName -Manager $managersManager.DistinguishedName
+                    $newManager = $managersManager
                 }
             }
 
             default {
                 if ($storeManager.Count -gt 0) {
-                    Set-ADUser -Identity $user.SamAccountName -Manager $storeManager[0].DistinguishedName
+                    $newManager = $storeManager[0]
                 }
                 elseif ($dailyManager.Count -gt 0) {
-                    Set-ADUser -Identity $user.SamAccountName -Manager $dailyManager[0].DistinguishedName
+                    $newManager = $dailyManager[0]
                 }
                 elseif ($owner.Count -gt 0) {
-                    Set-ADUser -Identity $user.SamAccountName -Manager $owner[0].DistinguishedName
+                    $newManager = $owner[0]
+                }
+            }
+        }
+        if ($newManager) {
+            # Only updates manager if newManager and originalManager are different
+            if ($originalManagerDN -ne $newManager.DistinguishedName) {
+                $counter += 1
+                Set-ADUser -Identity $user.SamAccountName -Manager $newManager.DistinguishedName
+
+                Write-Host "Updating $($user.SamAccountName)" -ForegroundColor Green
+
+                # Add to log object
+                $global:ManagerUpdateLog += [PSCustomObject]@{
+                    StoreNumber = $user.extensionAttribute9
+                    User = $user.SamAccountName
+                    Role = $user.extensionAttribute12
+                    OldManager = if ($originalManager) { $originalManager.SamAccountName } else { $null }
+                    NewManager = $newManager.SamAccountName
                 }
             }
         }
     }
-    Write-Host "Total users found: $($users.Count)"
+    Write-Host "`nTotal users found: $($users.Count)"
     Write-Host "Owners: $($owner.Count), DailyManagers: $($dailyManager.Count), StoreManagers: $($storeManager.Count)"
+    Write-Host "Total users updated: $($counter)"
 }
 
 function Get-UserLists {
@@ -103,6 +132,11 @@ function Get-HashTable {
 
 function Main {
 
+    $logDir = "C:\Logs"
+    if (-not (Test-Path $logDir)) {
+        New-Item -Path $logDir -ItemType Directory -Force
+    }
+
     # Set the OU for searchbase
     $OU = "OU=Expert-Store,OU=NO,OU=Expert-Mgmt,DC=expert,DC=local"
 
@@ -115,8 +149,16 @@ function Main {
 
         $data = Get-UserLists -storeNumber $storeNumber -OU $OU -managersManagerEmail $managersManagerEmail
 
+        Write-Host "`nProcessing store: $storeNumber (Manager's Manager': $managersManagerEmail)`n" -ForegroundColor Cyan
+
         Update-Manager -users $data.Users -owner $data.Owner -dailyManager $data.DailyManager -storeManager $data.StoreManager -managersManager $data.ManagersManager
     }
+
+    $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+    $logPath = "C:\Logs\ManagerUpdate_$timestamp.csv"
+    $global:ManagerUpdateLog | Export-Csv -Path $logPath -NoTypeInformation -Encoding utf8
+
+    Write-Host "`nLog exported to $logPath" -ForegroundColor Yellow
 }
 
 Main
