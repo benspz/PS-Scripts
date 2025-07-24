@@ -16,6 +16,7 @@ function Update-Manager {
         $originalManager = if ($originalManagerDN) { Get-ADUser -Identity $originalManagerDN } else { $null }
         $newManager = $null
 
+        # Checks role and assigns correct manager
         switch -Wildcard ($role) {
             "Owner" {
                 $newManager = $managersManager
@@ -42,7 +43,7 @@ function Update-Manager {
                 }
             }
 
-            default {
+            default {  # Regular store employees
                 if ($storeManager.Count -gt 0) {
                     $newManager = $storeManager[0]
                 }
@@ -73,6 +74,7 @@ function Update-Manager {
             }
         }
     }
+    # Informational output, mostly for debugging, but it's nice to see I guess
     Write-Host "`nTotal users found: $($users.Count)"
     Write-Host "Owners: $($owner.Count), DailyManagers: $($dailyManager.Count), StoreManagers: $($storeManager.Count)"
     Write-Host "Total users updated: $($counter)"
@@ -132,6 +134,7 @@ function Get-HashTable {
 
 function Main {
 
+    # Checks if log directory exists and creates one if not
     $logDir = "C:\Logs"
     if (-not (Test-Path $logDir)) {
         New-Item -Path $logDir -ItemType Directory -Force
@@ -140,8 +143,11 @@ function Main {
     # Set the OU for searchbase
     $OU = "OU=Expert-Store,OU=NO,OU=Expert-Mgmt,DC=expert,DC=local"
 
+    # Creates hashtable with storenumbers as keys and manager's manager as value
     $hashTable = Get-HashTable
 
+    # Main logic
+    # For each storecode in the table it gets a list of users and updates managers if neccessary
     foreach ($key in $hashTable.Keys) {
 
         $storeNumber = $key
@@ -154,6 +160,7 @@ function Main {
         Update-Manager -users $data.Users -owner $data.Owner -dailyManager $data.DailyManager -storeManager $data.StoreManager -managersManager $data.ManagersManager
     }
 
+    # Creates logfile
     $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
     $logPath = "C:\Logs\ManagerUpdate_$timestamp.csv"
     $global:ManagerUpdateLog | Export-Csv -Path $logPath -NoTypeInformation -Encoding utf8
