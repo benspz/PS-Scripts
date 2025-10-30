@@ -6,7 +6,7 @@
 $global:ManagerUpdateLog = @()
 
 function Update-Manager {
-    param ($users, $owner, $dailyManager, $storeManager, $managersManager)
+    param ($users, $storeOwner, $dailyManager, $storeManager, $managersManager)
 
     # Initialize counter
     $counter = 0
@@ -20,25 +20,42 @@ function Update-Manager {
 
         # Checks role and assigns correct manager
         switch -Wildcard ($role) {
-            "Owner" {
+            "StoreOwner" {
                 $newManager = $managersManager
             }
 
             "DailyManager" {
-                if ($owner.Count -gt 0) {
-                    $newManager = $owner[0]
+                if ($storeOwner.Count -gt 0) {
+                    $newManager = $storeOwner[0]
                 }
                 else {
                     $newManager = $managersManager
                 }
             }
 
-            "StoreManager*" {
+            "StoreManager" {
                 if ($dailyManager.Count -gt 0) {
                     $newManager = $dailyManager[0]
                 }
-                elseif ($owner.Count -gt 0) {
-                    $newManager = $owner[0]
+                elseif ($storeOwner.Count -gt 0) {
+                    $newManager = $storeOwner[0]
+                }
+                else {
+                    $newManager = $managersManager
+                }
+            }
+
+            "StoreManager2" {
+                if ($storeManager.Count -lt 2) {
+                    Set-ADUser -Identity $user.DistinguishedName -Replace @{
+                        extensionAttribute12 = "StoreManager"
+                    }
+                }
+                if ($dailyManager.Count -gt 0) {
+                    $newManager = $dailyManager[0]
+                }
+                elseif ($storeOwner.Count -gt 0) {
+                    $newManager = $storeOwner[0]
                 }
                 else {
                     $newManager = $managersManager
@@ -52,8 +69,8 @@ function Update-Manager {
                 elseif ($dailyManager.Count -gt 0) {
                     $newManager = $dailyManager[0]
                 }
-                elseif ($owner.Count -gt 0) {
-                    $newManager = $owner[0]
+                elseif ($storeOwner.Count -gt 0) {
+                    $newManager = $storeOwner[0]
                 }
             }
         }
@@ -78,7 +95,7 @@ function Update-Manager {
     }
     # Informational output, mostly for debugging, but it's nice to see I guess
     Write-Host "`nTotal users found: $($users.Count)"
-    Write-Host "Owners: $($owner.Count), DailyManagers: $($dailyManager.Count), StoreManagers: $($storeManager.Count)"
+    Write-Host "Owners: $($storeOwner.Count), DailyManagers: $($dailyManager.Count), StoreManagers: $($storeManager.Count)"
     Write-Host "Total users updated: $($counter)"
 }
 
@@ -89,15 +106,15 @@ function Get-UserLists {
     $users = Get-ADUser -Filter "extensionAttribute9 -eq '$storeNumber'" -SearchBase $OU -Properties * | Where-Object {$_.EmployeeID}
 
     # Find users by role
-    $owner = $users | Where-Object {$_.extensionAttribute12 -in @("Owner")}
+    $storeOwner = $users | Where-Object {$_.extensionAttribute12 -in @("StoreOwner")}
     $dailyManager = $users | Where-Object {$_.extensionAttribute12 -in @("DailyManager")}
-    $storeManager = $users | Where-Object {$_.extensionAttribute12 -in @("StoreManager", "StoreManager1")}
+    $storeManager = $users | Where-Object {$_.extensionAttribute12 -in @("StoreManager", "StoreManager2")}
     
     $managersManager = Get-ADUser -Filter "EmailAddress -eq '$managersManagerEmail'" -Properties *
 
     return [PSCustomObject]@{
         Users = $users
-        Owner = $owner
+        StoreOwner = $storeOwner
         DailyManager = $dailyManager
         StoreManager = $storeManager
         ManagersManager = $managersManager
@@ -159,7 +176,7 @@ function Main {
 
         Write-Host "`nProcessing store: $storeNumber (Manager's Manager': $managersManagerEmail)`n" -ForegroundColor Cyan
 
-        Update-Manager -users $data.Users -owner $data.Owner -dailyManager $data.DailyManager -storeManager $data.StoreManager -managersManager $data.ManagersManager
+        Update-Manager -users $data.Users -storeOwner $data.StoreOwner -dailyManager $data.DailyManager -storeManager $data.StoreManager -managersManager $data.ManagersManager
     }
 
     # Creates logfile
